@@ -284,4 +284,45 @@ static inline bool compareContourAreas ( std::vector<cv::Point> contour1,
     double j = fabs( contourArea(cv::Mat(contour2)) );
     return ( i < j );
 }
+
+static inline cv::Mat wrap(cv::Mat &src, vector<Point> largest){
+  vector<vector<Point> > contours_poly(1);
+  approxPolyDP( Mat(largest), contours_poly[0],10, true );
+  Rect boundRect=boundingRect(largest);
+  if(contours_poly[0].size()==4){
+    std::vector<Point2f> quad_pts;
+    std::vector<Point2f> squre_pts;
+    quad_pts.push_back(Point2f(contours_poly[0][0].x,contours_poly[0][0].y));
+    quad_pts.push_back(Point2f(contours_poly[0][1].x,contours_poly[0][1].y));
+    quad_pts.push_back(Point2f(contours_poly[0][3].x,contours_poly[0][3].y));
+    quad_pts.push_back(Point2f(contours_poly[0][2].x,contours_poly[0][2].y));
+    squre_pts.push_back(Point2f(boundRect.x,boundRect.y));
+    squre_pts.push_back(Point2f(boundRect.x,boundRect.y+boundRect.height));
+    squre_pts.push_back(Point2f(boundRect.x+boundRect.width,boundRect.y));
+    squre_pts.push_back(Point2f(boundRect.x+boundRect.width,boundRect.y+boundRect.height));
+
+    Mat transmtx = getPerspectiveTransform(quad_pts,squre_pts);
+    Mat transformed = Mat::zeros(src.rows, src.cols, CV_8UC3);
+    warpPerspective(src, transformed, transmtx, src.size());
+    Point P1=contours_poly[0][0];
+    Point P2=contours_poly[0][1];
+    Point P3=contours_poly[0][2];
+    Point P4=contours_poly[0][3];
+
+
+    line(src,P1,P2, Scalar(0,0,255),1,CV_AA,0);
+    line(src,P2,P3, Scalar(0,0,255),1,CV_AA,0);
+    line(src,P3,P4, Scalar(0,0,255),1,CV_AA,0);
+    line(src,P4,P1, Scalar(0,0,255),1,CV_AA,0);
+    rectangle(src,boundRect,Scalar(0,255,0),1,8,0);
+    rectangle(transformed,boundRect,Scalar(0,255,0),1,8,0);
+
+    imshow("src", src);
+    imshow("quadrilateral", transformed);
+    return transformed(boundRect);
+  }else
+    cout << "Make sure that your are getting 4 corner using approxPolyDP..." <<
+      contours_poly[0].size() << endl;
+  return src;
+}
 #endif

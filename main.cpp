@@ -113,6 +113,18 @@ void clean_callback(int, void*){
   imshow("rect",img);
 }
 
+void get_contour_corners(vector<Point> contour){
+  Point top_left(MAX_WIDTH, MAX_WIDTH*2), top_right(0, MAX_WIDTH*2),
+        bottom_left(MAX_WIDTH, 0), bottom_right(0, 0);
+  for(int i = 0; i < contour.size(); i++){
+    Point p = contour[i];
+    if(p.x < top_left.x || p.x == top_left.x && p.y < top_left.y ) top_left = p;
+    if(p.x > top_right.x || p.x == top_right.x && p.y < top_right.y ) top_right = p;
+    if(p.x < bottom_left.x || p.x == bottom_left.x && p.y > bottom_left.y ) bottom_left = p;
+    if(p.x < top_left.x || p.x == top_left.x && p.y > top_left.y ) top_left = p;
+  }
+}
+
 void thresh_callback(int, void*){
   
   vector<vector<Point> > contours;
@@ -133,8 +145,25 @@ void thresh_callback(int, void*){
   //drawContours( edges, contours, -1, color, 2, 8, hierarchy, 0, Point() );
   drawContours( drawing, biggest, -1, color, 2 );
 
+  //vector<vector<Point> > hull(1);
+  //Mat tmp(biggest[0]);
+  //convexHull( tmp, hull[0], false );
+  //printf("biggest size: %d\n", biggest[0].size());
+  //drawContours( drawing, hull, -1, Scalar(255,0,0), 2 );
+
   // Show in a window
   imshow( "Source", drawing );
+
+  Mat cut_wrap = wrap(img, biggest[0]);
+  imshow("wrap and cut", cut_wrap);
+
+  //Mat img4;
+  //cvtColor(drawing,img4, CV_RGB2GRAY);  
+  //vector<Vec4i> lines = search_lines(img4); 
+  //for(int i = 0; i < lines.size(); i++)
+  //  line(drawing, Point(lines[i][0], lines[i][1]), Point(lines[i][2],
+  //        lines[i][3]), Scalar(0,0,255), 3, CV_AA);
+  //imshow("lines",drawing);
 
   // you could also reuse img1 here
   Mat mask = Mat::zeros(img.rows, img.cols, CV_8UC1);
@@ -156,6 +185,27 @@ void thresh_callback(int, void*){
   normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
 
   imshow("cropped", crop);
+
+  Rect r = boundingRect(biggest[0]); 
+
+  cout << r << endl;
+  Mat submat = img(r);  
+  //circle( submat, Point(10,10), 3, Scalar(0,0,0), -1, 8, 0 );
+  imshow("cropped2", submat);
+  //cv::Mat quad = cv::Mat::zeros(r.height, r.width, CV_8UC3);  
+  //// Corners of the destination image  
+  //std::vector<cv::Point2f> quad_pts;  
+  //quad_pts.push_back(cv::Point2f(0, 0));  
+  //quad_pts.push_back(cv::Point2f(quad.cols, 0));  
+  //quad_pts.push_back(cv::Point2f(quad.cols, quad.rows));  
+  //quad_pts.push_back(cv::Point2f(0, quad.rows));  
+
+  //cv::Mat img3, quad;  
+  //cvtColor(img,img3, CV_GRAY2RGB); 
+
+  //fix_perspective(img3, quad, corners, quad_pts);
+
+  //imshow("transform",quad);
 
   /////imshow("cvtColor", img3);
 
