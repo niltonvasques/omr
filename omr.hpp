@@ -163,8 +163,8 @@ static inline vector<int> find_markers(cv::Mat &src, vector<Vec3f> circles){
 
   averR /= circles.size();
 
-  sort(row.begin(),row.end(),comparator2);
-  sort(col.begin(),col.end(),comparator2);
+  sort(row.begin(),row.end());
+  sort(col.begin(),col.end());
 
   vector<int> markers;
   Mat cimg;

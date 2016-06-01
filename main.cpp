@@ -85,7 +85,7 @@ int main(int argc, char* argv[]){
   }
 
   //// circle outline*/  
-  //imshow("circles",quad);
-  //waitKey();
+  imshow("circles",quad);
+  waitKey();
   return 0;
 }
