@@ -287,7 +287,12 @@ static inline bool compareContourAreas ( std::vector<cv::Point> contour1,
 
 static inline cv::Mat wrap(cv::Mat &src, vector<Point> largest){
   vector<vector<Point> > contours_poly(1);
-  approxPolyDP( Mat(largest), contours_poly[0],10, true );
+  //Search optimal epsilon
+  for(double eps = 5; eps < 30; eps+= 0.5){
+    approxPolyDP( Mat(largest), contours_poly[0], eps, true );
+    if(contours_poly[0].size()==4)
+      break;
+  }
   Rect boundRect=boundingRect(largest);
   if(contours_poly[0].size()==4){
     std::vector<Point2f> quad_pts;

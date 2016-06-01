@@ -20,7 +20,7 @@ void clean_callback(int, void*);
 
 int range = 200; 
 
-#define MAX_WIDTH 500.0
+#define MAX_WIDTH 600.0
 
 int main(int argc, char* argv[]){
 
@@ -150,8 +150,8 @@ void thresh_callback(int, void*){
 
   int cols = 21;
   int rows = 29;
-  double w_step = normalized.size().width / cols; 
-  double h_step = normalized.size().height / rows; 
+  double w_step = normalized.size().width / 21.0; 
+  double h_step = normalized.size().height / 29.0; 
   for(int i = 0; i < rows; i++){
     for(int j = 0; j < cols; j++){
       double x = j * w_step;
@@ -159,8 +159,11 @@ void thresh_callback(int, void*){
 
       Rect rect(x,y,w_step,h_step);  
       Mat submat = normalized(rect);  
+      Rect rect2(w_step*0.2,h_step*0.2,w_step*0.6,h_step*0.6);  
+      submat = submat(rect2);  
       double p =(double)countNonZero(submat)/(submat.size().width*submat.size().height);  
-      if(p>=0.3){  
+      rectangle(drawing, rect, Scalar(255, 255, 255));
+      if(p>=0.5){  
         //max = p;  
         //ind = j;  
         //rectangle(src, c, averR, Scalar(255,0,255), 3, 8, 0);  
