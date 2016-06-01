@@ -113,18 +113,6 @@ void clean_callback(int, void*){
   imshow("rect",img);
 }
 
-void get_contour_corners(vector<Point> contour){
-  Point top_left(MAX_WIDTH, MAX_WIDTH*2), top_right(0, MAX_WIDTH*2),
-        bottom_left(MAX_WIDTH, 0), bottom_right(0, 0);
-  for(int i = 0; i < contour.size(); i++){
-    Point p = contour[i];
-    if(p.x < top_left.x || p.x == top_left.x && p.y < top_left.y ) top_left = p;
-    if(p.x > top_right.x || p.x == top_right.x && p.y < top_right.y ) top_right = p;
-    if(p.x < bottom_left.x || p.x == bottom_left.x && p.y > bottom_left.y ) bottom_left = p;
-    if(p.x < top_left.x || p.x == top_left.x && p.y > top_left.y ) top_left = p;
-  }
-}
-
 void thresh_callback(int, void*){
   
   vector<vector<Point> > contours;
@@ -139,6 +127,7 @@ void thresh_callback(int, void*){
 
   sort(contours.begin(), contours.end(), compareContourAreas);
   biggest.pb(contours[contours.size()-1]);
+
   /// Draw contours
   Mat drawing = Mat::zeros( edges.size(), CV_8UC3 );
   Scalar color = Scalar( rng.uniform(0, 255), rng.uniform(0,255), rng.uniform(0,255) );
@@ -150,12 +139,37 @@ void thresh_callback(int, void*){
   //convexHull( tmp, hull[0], false );
   //printf("biggest size: %d\n", biggest[0].size());
   //drawContours( drawing, hull, -1, Scalar(255,0,0), 2 );
-
   // Show in a window
   imshow( "Source", drawing );
 
-  Mat cut_wrap = wrap(img, biggest[0]);
-  imshow("wrap and cut", cut_wrap);
+  Mat normalized = wrap(img, biggest[0]);
+  imshow("wrap and cut", normalized);
+
+  cleanup_image(normalized, normalized);
+  cvtColor(normalized, drawing, CV_GRAY2RGB);
+
+  int cols = 21;
+  int rows = 29;
+  double w_step = normalized.size().width / cols; 
+  double h_step = normalized.size().height / rows; 
+  for(int i = 0; i < rows; i++){
+    for(int j = 0; j < cols; j++){
+      double x = j * w_step;
+      double y = i * h_step;
+
+      Rect rect(x,y,w_step,h_step);  
+      Mat submat = normalized(rect);  
+      double p =(double)countNonZero(submat)/(submat.size().width*submat.size().height);  
+      if(p>=0.3){  
+        //max = p;  
+        //ind = j;  
+        //rectangle(src, c, averR, Scalar(255,0,255), 3, 8, 0);  
+        rectangle(drawing, rect, Scalar(255, 0, 255));
+        cout << p << endl;
+      }  
+    }
+  }
+  imshow("founded", drawing);
 
   //Mat img4;
   //cvtColor(drawing,img4, CV_RGB2GRAY);  
@@ -166,32 +180,32 @@ void thresh_callback(int, void*){
   //imshow("lines",drawing);
 
   // you could also reuse img1 here
-  Mat mask = Mat::zeros(img.rows, img.cols, CV_8UC1);
+  //Mat mask = Mat::zeros(img.rows, img.cols, CV_8UC1);
 
-  // CV_FILLED fills the connected components found
-  drawContours(mask, biggest, -1, Scalar(255), CV_FILLED);
-  imshow("Mask", mask);
+  //// CV_FILLED fills the connected components found
+  //drawContours(mask, biggest, -1, Scalar(255), CV_FILLED);
+  //imshow("Mask", mask);
 
-  // let's create a new image now
-  Mat crop(img.rows, img.cols, CV_8UC3);
+  //// let's create a new image now
+  //Mat crop(img.rows, img.cols, CV_8UC3);
 
-  // set background to green
-  crop.setTo(Scalar(0,255,0));
+  //// set background to green
+  //crop.setTo(Scalar(0,255,0));
 
-  // and copy the magic apple
-  img.copyTo(crop, mask);
+  //// and copy the magic apple
+  //img.copyTo(crop, mask);
 
-  // normalize so imwrite(...)/imshow(...) shows the mask correctly!
-  normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
+  //// normalize so imwrite(...)/imshow(...) shows the mask correctly!
+  //normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
 
-  imshow("cropped", crop);
+  //imshow("cropped", crop);
 
-  Rect r = boundingRect(biggest[0]); 
+  //Rect r = boundingRect(biggest[0]); 
 
-  cout << r << endl;
-  Mat submat = img(r);  
-  //circle( submat, Point(10,10), 3, Scalar(0,0,0), -1, 8, 0 );
-  imshow("cropped2", submat);
+  //cout << r << endl;
+  //Mat submat = img(r);  
+  ////circle( submat, Point(10,10), 3, Scalar(0,0,0), -1, 8, 0 );
+  //imshow("cropped2", submat);
   //cv::Mat quad = cv::Mat::zeros(r.height, r.width, CV_8UC3);  
   //// Corners of the destination image  
   //std::vector<cv::Point2f> quad_pts;  
