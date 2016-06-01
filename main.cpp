@@ -143,6 +143,20 @@ void thresh_callback(int, void*){
   drawContours(mask, biggest, -1, Scalar(255), CV_FILLED);
   imshow("Mask", mask);
 
+  // let's create a new image now
+  Mat crop(img.rows, img.cols, CV_8UC3);
+
+  // set background to green
+  crop.setTo(Scalar(0,255,0));
+
+  // and copy the magic apple
+  img.copyTo(crop, mask);
+
+  // normalize so imwrite(...)/imshow(...) shows the mask correctly!
+  normalize(mask.clone(), mask, 0.0, 255.0, CV_MINMAX, CV_8UC1);
+
+  imshow("cropped", crop);
+
   /////imshow("cvtColor", img3);
 
   /////Mat img3;
